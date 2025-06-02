@@ -6,6 +6,12 @@ __pycache__/
 # C extensions
 *.so
 
+# personal files
+.venv_project/
+intermediate_data/
+models/
+preprocessing (5).ipynb
+
 # Distribution / packaging
 .Python
 build/
