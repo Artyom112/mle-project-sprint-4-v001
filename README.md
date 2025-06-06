@@ -65,16 +65,9 @@ jupyter lab --ip=0.0.0.0 --no-browser
 
 Необходимые шаги для запуска сервиса рекомендаций
 
-1. Прежде чем запускать сервис, в корне проекта нужно создать папку recommendations и положить туда файлы из персонального s3 бакета:
-recommendations.parquet
-top_popular.parquet
-similar_items.parquet
-Все файлы находятся в папке recsys/recommendations, имя бакета: s3-student-mle-20240729-c37e1cdb33
+1. Прежде чем запускать сервис, в корне проекта нужно создать папку recommendations и положить туда файлы из персонального s3 бакета: recommendations.parquet, top_popular.parquet, similar_items.parquet. Все файлы находятся в папке recsys/recommendations, имя бакета: s3-student-mle-20240729-c37e1cdb33
 
-2. Запускаем необходимые сервисы командами:
-сервис рекомендаций: "uvicorn recommendation_servive:app"
-сервис выдачи похожих айтемов: "uvicorn features_service:app --port 8010"
-сервис онлайн событий: "uvicorn events_service:app --port 8020"
+2. Запускаем необходимые сервисы командами: сервис рекомендаций: `uvicorn recommendation_servive:app`, сервис выдачи похожих айтемов: `uvicorn features_service:app --port 8010`, сервис онлайн событий: `uvicorn events_service:app --port 8020`.
 
 Стратегия тестирования:
 1. Возьмем пользователя из определенного сценария (в test_service.py приведены все три сценария), и сгенерируем для него несколько взаимодействий (если сценарий того требует) с некоторыми айтемами (при помощи ендпойнта events_store_url + "/put").
