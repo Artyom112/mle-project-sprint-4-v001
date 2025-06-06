@@ -55,22 +55,22 @@ def get_all_user_recs(user_id, k):
     log_response(f"Онлайн-рекомендации для пользователя {user_id}", resp_online)
     log_response(f"Смешанные рекомендации для пользователя {user_id}", resp_blended)
 
-if __name__ == "__main__":
+# Получаем все рекомендации для пользователя
+def compute_recs(user_id, is_events=False):
     logging.info("="*50)
     logging.info(f"Начало тестирования в {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     logging.info("="*50)
-    
-    user_id = 26
 
-    # Взаимодействия
-    add_event(user_id, 78194999)
-    time.sleep(0.1)
-    add_event(user_id, 84099295)
-    time.sleep(0.1)
-    add_event(user_id, 100736375)
-    time.sleep(0.1)
-    add_event(user_id, 33307667)
-    time.sleep(0.1)
+    if is_events:
+        # Взаимодействия
+        add_event(user_id, 78194999)
+        time.sleep(0.1)
+        add_event(user_id, 84099295)
+        time.sleep(0.1)
+        add_event(user_id, 100736375)
+        time.sleep(0.1)
+        add_event(user_id, 33307667)
+        time.sleep(0.1)
 
     # Проверка событий
     get_user_events(user_id)
@@ -86,3 +86,11 @@ if __name__ == "__main__":
     logging.info("="*50)
     logging.info(f"Тестирование завершено в {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     logging.info("="*50)
+
+if __name__ == "__main__":
+    # Как персональные, так и онлайн рекомендации
+    compute_recs(26, is_events=True)
+    # Только персональные рекомендации
+    compute_recs(76, is_events=False)
+    # Только онлайн рекомендации, без персональных, вместо них будут использоваться top_popular
+    compute_recs(3, is_events=True)
