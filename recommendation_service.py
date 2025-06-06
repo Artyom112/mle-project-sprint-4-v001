@@ -100,7 +100,6 @@ async def recommendations(user_id: int, k: int = 100):
     """
     Возвращает список рекомендаций длиной k для пользователя user_id
     """
-
     recs_offline = await recommendations_offline(user_id, k)
     recs_online = await recommendations_online(user_id, k)
 
@@ -110,18 +109,22 @@ async def recommendations(user_id: int, k: int = 100):
     recs_blended = []
 
     min_length = min(len(recs_offline), len(recs_online))
-    # чередуем элементы из списков, пока позволяет минимальная длина
     for i in range(min_length):
-        # ваш код здесь #
-        recs_blended.append(recs_offline[i] if i % 2 == 0 else recs_online[i])
+        if i % 2 == 0:  # Нечетная позиция 
+            recs_blended.append(recs_online[i])
+        else:  # Четная позиция 
+            recs_blended.append(recs_offline[i])
 
-    # добавляем оставшиеся элементы в конец
-    recs_blended += max(recs_offline, recs_online, key=len)[min_length:]
+    # Добавляем оставшиеся элементы (если один из списков длиннее)
+    if len(recs_online) > min_length:
+        recs_blended.extend(recs_online[min_length:])
+    elif len(recs_offline) > min_length:
+        recs_blended.extend(recs_offline[min_length:])
 
-    # удаляем дубликаты
+    # Удаляем дубликаты
     recs_blended = dedup_ids(recs_blended)
-    
-    # оставляем только первые k рекомендаций
+
+    # Обрезаем до k рекомендаций
     recs_blended = recs_blended[:k]
 
     return {"recs": recs_blended}

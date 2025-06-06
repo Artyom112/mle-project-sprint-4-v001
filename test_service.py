@@ -1,90 +1,88 @@
 import requests
 import time
+import logging
+from datetime import datetime
+
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(message)s',
+    handlers=[
+        logging.FileHandler('test_service.log'),
+        logging.StreamHandler()  # Также выводим в консоль
+    ]
+)
 
 # Поместим несколько взаимодействий для пользователя
 recommendations_url = "http://127.0.0.1:8000"
 events_store_url = "http://127.0.0.1:8020"
 headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
 
-# Взаимодействие пользоватея с айтемом
+def log_response(action: str, response):
+    """Логирует результат запроса"""
+    if response.status_code == 200:
+        logging.info(f"{action} - Успешно: {response.json()}")
+    else:
+        logging.error(f"{action} - Ошибка {response.status_code}: {response.text}")
+
+# Взаимодействие пользователя с айтемом
 def add_event(user_id: int, item_id: int):
     params = {"user_id": user_id, "item_id": item_id}
     resp = requests.post(events_store_url + "/put", headers=headers, params=params)
-    if resp.status_code == 200:
-        result = resp.json()
-    else:
-        result = None
-        print(f"status code: {resp.status_code}")
-    print(result)
+    log_response(f"Добавление события (user={user_id}, item={item_id})", resp)
 
-# Посмотрим на все взаимодействия пользователи (макс 10 последних)
+# Получение взаимодействий пользователя
 def get_user_events(user_id: int):
     params = {"user_id": user_id}
     resp = requests.post(events_store_url + "/get", headers=headers, params=params)
-    if resp.status_code == 200:
-        result = resp.json()
-    else:
-        result = None
-        print(f"status code: {resp.status_code}")
-        
-    print(result)
+    log_response(f"Получение событий пользователя {user_id}", resp)
 
-# Рекомендуем k айтемов для трех последних, сортируем по score
+# Онлайн-рекомендации
 def get_online_user_recommendations(user_id: int, k=100):
     params = {"user_id": user_id, 'k': k}
     resp = requests.post(recommendations_url + "/recommendations_online", headers=headers, params=params)
-    online_recs = resp.json()
-    print(online_recs)
+    log_response(f"Онлайн-рекомендации для пользователя {user_id} (k={k})", resp)
 
-# Смотрим на бленд рекомендация (offline и online)
+# Смешанные рекомендации
 def get_all_user_recs(user_id, k):
     params = {"user_id": user_id, 'k': k}
+    
     resp_offline = requests.post(recommendations_url + "/recommendations_offline", headers=headers, params=params)
     resp_online = requests.post(recommendations_url + "/recommendations_online", headers=headers, params=params)
     resp_blended = requests.post(recommendations_url + "/recommendations", headers=headers, params=params)
 
-    recs_offline = resp_offline.json()["recs"]
-    recs_online = resp_online.json()["recs"]
-    recs_blended = resp_blended.json()["recs"]
-
-    print(recs_offline)
-    print(recs_online)
-    print(recs_blended)
-
+    log_response(f"Офлайн-рекомендации для пользователя {user_id}", resp_offline)
+    log_response(f"Онлайн-рекомендации для пользователя {user_id}", resp_online)
+    log_response(f"Смешанные рекомендации для пользователя {user_id}", resp_blended)
 
 if __name__ == "__main__":
-    # Взаимодействие 1
-    add_event(26, 78194999)
+    logging.info("="*50)
+    logging.info(f"Начало тестирования в {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    logging.info("="*50)
+    
+    user_id = 26
+
+    # Взаимодействия
+    add_event(user_id, 78194999)
+    time.sleep(0.1)
+    add_event(user_id, 84099295)
+    time.sleep(0.1)
+    add_event(user_id, 100736375)
+    time.sleep(0.1)
+    add_event(user_id, 33307667)
     time.sleep(0.1)
 
-    # Взаимодействие 2
-    add_event(26, 84099295)
+    # Проверка событий
+    get_user_events(user_id)
     time.sleep(0.1)
 
-    # Взаимодействие 3
-    add_event(26, 100736375)
-    time.sleep(0.1)
+    # Онлайн-рекомендации
+    get_online_user_recommendations(user_id, k=5)
 
-    # Взаимодействие 4
-    add_event(26, 33307667)
-    time.sleep(0.1)
+    # Все рекомендации
+    logging.info("\nПолучение всех рекомендаций:")
+    get_all_user_recs(user_id, 5)
 
-    # Проверим наличие events у пользователя
-    get_user_events(26)
-    time.sleep(0.1)
-
-    # Проверим online рекомендации, рекомендуем 5 похожих из similar_items для каждого из 3-х последних item_id пользователя
-    get_online_user_recommendations(26, k=5)
-
-    print()
-    get_all_user_recs(26, 5)
-
-
-
-
-
-
-
-
-
-
+    logging.info("="*50)
+    logging.info(f"Тестирование завершено в {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    logging.info("="*50)
